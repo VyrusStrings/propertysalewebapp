@@ -1,4 +1,5 @@
 * text=auto
 *.sh text eol=lf
 *.yml text eol=lf
-g
+staticfiles/* linguist-vendored
+collectstatic/* linguist-vendored
