@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Free Inspection Tour" %}{% endblock %}
+{% block content %}
+<style>
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
+  .list{margin:0;padding-left:18px;color:var(--ink)}
+  .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+
+<h1 style="margin:0 0 12px">{% trans "Free Inspection Tour" %}</h1>
+<p class="meta">{% trans "Fly in, stay by the sea, and view projects with us. Online tour available too." %}</p>
+
+<div class="grid" style="margin-top:16px">
+  <div class="panel">
+    <h3>{% trans "What’s included" %}</h3>
+    <ul class="list">
+      <li>{% trans "Transfer from airport" %}</li>
+      <li>{% trans "Seaside apartments accommodation" %}</li>
+      <li>{% trans "Project shortlist & viewings" %}</li>
+      <li>{% trans "Legal & financial guidance" %}</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>{% trans "Sign up" %}</h3>
+    <p class="meta">{% trans "Leave a request and choose your dates — we’ll coordinate everything." %}</p>
+    <a class="btn btn-primary" href="{% url 'leads:contact' %}">{% trans "Request Tour" %}</a>
+  </div>
+</div>
+{% endblock %}

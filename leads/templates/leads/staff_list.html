@@ -1,0 +1,153 @@
+{% extends "staff_base.html" %}
+{% block title %}Leads{% endblock %}
+{% block content %}
+
+<style>
+  :root{
+    --card:#fff; --line:#e6e9f0; --muted:#64748b; --text:#0f172a;
+    --blue:#0b6aa8; --blue-2:#095782; --radius:12px;
+    --shadow:0 10px 26px rgba(16,24,40,.08);
+  }
+
+  .topbar{
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .topbar h1{ margin:0; font-size:1.6rem; flex:1; }
+
+  /* Controls */
+  .btn{
+    background:var(--blue); color:#fff; border:0; border-radius:8px;
+    padding:10px 14px; font-weight:700; cursor:pointer;
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    box-shadow:0 6px 14px rgba(2,8,23,.12);
+    transition: filter .15s ease, box-shadow .15s ease, transform .05s ease;
+  }
+  .btn:hover{ filter:brightness(.96); box-shadow:0 10px 20px rgba(2,8,23,.18); }
+  .btn:active{ transform: translateY(1px); }
+
+  .input, .select{
+    padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff;
+    outline:none; transition: box-shadow .15s ease, border-color .15s ease;
+  }
+  .input:focus, .select:focus{ border-color:var(--blue); box-shadow:0 0 0 4px rgba(11,106,168,.18); }
+
+  /* Table container */
+  .table-wrap{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; box-shadow:var(--shadow);
+  }
+
+  /* Table */
+  .admin-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  .admin-table thead th{
+    position:sticky; top:0; z-index:1; background:#f7fafc; color:#475569;
+    text-align:left; font-weight:700; border-bottom:1px solid var(--line);
+    padding:12px 12px;
+  }
+  .admin-table td{
+    padding:12px; border-bottom:1px solid #f1f5f9; vertical-align:top;
+  }
+  .admin-table tbody tr:nth-child(even){ background:#fcfdff; }
+  .admin-table tbody tr:hover td{ background:#f8fbff; transition: background .15s ease; }
+
+  .pill{
+    display:inline-block; padding:3px 8px; border-radius:999px; font-size:.85rem;
+    background:#e6f6ff; color:#0b6aa8; border:1px solid #cfe9fb;
+  }
+
+  /* Make long messages wrap nicely */
+  .message{ white-space:pre-wrap; word-break:break-word; max-width:420px; }
+  @media (max-width: 900px){ .message{ max-width: unset; } }
+
+  /* Empty state */
+  .empty{ padding:18px; color:var(--muted); }
+</style>
+
+<div class="topbar">
+  <h1>Leads</h1>
+
+  <input id="searchBox" class="input" type="search" placeholder="Search name, contact, country, property…" />
+  <select id="timelineFilter" class="select">
+    <option value="">All timelines</option>
+    {% for t, label in timeline_choices %}
+      <option value="{{ t }}">{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <a class="btn" href="{% url 'leads:staff_export_csv' %}">⬇ Export CSV</a>
+</div>
+
+<div class="table-wrap">
+  <table class="admin-table" id="leadsTable">
+    <thead>
+      <tr>
+        <th style="width:140px">Date</th>
+        <th style="width:160px">Name</th>
+        <th style="width:200px">Contact</th>
+        <th style="width:140px">Country</th>
+        <th style="width:160px">Budget</th>
+        <th style="width:130px">Timeline</th>
+        <th style="width:220px">Property</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+    <tbody id="leadsBody">
+      {% for l in leads %}
+      <tr
+        data-name="{{ l.full_name|default:''|lower }}"
+        data-contact="{{ l.phone|default:'' }} {{ l.email|default:'' }}"
+        data-country="{{ l.country|default:''|lower }}"
+        data-timeline="{{ l.timeline|default:'' }}"
+        data-property="{% if l.property %}{{ l.property.title|lower }}{% else %}{% endif %}"
+        data-message="{{ l.message|default:''|lower }}"
+      >
+        <td>{{ l.created_at|date:"Y-m-d H:i" }}</td>
+        <td>{{ l.full_name }}</td>
+        <td>{{ l.phone }}<br>{{ l.email }}</td>
+        <td>{{ l.country|default:"—" }}</td>
+        <td>${{ l.budget_min|default:"0" }} – ${{ l.budget_max|default:"0" }}</td>
+        <td><span class="pill">{{ l.timeline|default:"—" }}</span></td>
+        <td>{% if l.property %}<a class="link" href="{{ l.property.get_absolute_url }}" target="_blank">{{ l.property.title }}</a>{% else %}—{% endif %}</td>
+        <td class="message" title="{{ l.message }}">{{ l.message|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td class="empty" colspan="8">No leads yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // Simple client-side filtering by search text + timeline
+  (function(){
+    const tbody = document.getElementById('leadsBody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const searchBox = document.getElementById('searchBox');
+    const timelineFilter = document.getElementById('timelineFilter');
+
+    function normalize(s){ return (s || '').toString().toLowerCase(); }
+
+    function applyFilter(){
+      const q = normalize(searchBox.value);
+      const t = timelineFilter.value;
+
+      rows.forEach(r => {
+        const matchesText =
+          normalize(r.dataset.name).includes(q) ||
+          normalize(r.dataset.contact).includes(q) ||
+          normalize(r.dataset.country).includes(q) ||
+          normalize(r.dataset.property).includes(q) ||
+          normalize(r.dataset.message).includes(q);
+
+        const matchesTimeline = !t || (r.dataset.timeline === t);
+
+        r.style.display = (matchesText && matchesTimeline) ? '' : 'none';
+      });
+    }
+
+    searchBox.addEventListener('input', applyFilter);
+    timelineFilter.addEventListener('change', applyFilter);
+  })();
+</script>
+
+{% endblock %}

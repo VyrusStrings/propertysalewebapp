@@ -1,0 +1,188 @@
+{% extends "staff_base.html" %}
+{% block title %}Manage Properties{% endblock %}
+{% block content %}
+
+<style>
+  :root{
+    --card:#fff; --line:#e6e9f0; --muted:#64748b; --text:#0f172a;
+    --blue:#0b6aa8; --blue-2:#095782; --green:#0e7a17; --red:#c0392b;
+    --shadow:0 10px 26px rgba(16,24,40,.08); --radius:12px;
+  }
+
+  .topbar {
+    display:flex; align-items:center; gap:12px; margin-bottom:14px;
+  }
+  .topbar h1 { margin:0; font-size:1.6rem; flex:1; }
+
+  .view-toggle { display:flex; align-items:center; gap:10px; }
+  .switch {
+    position:relative; width:56px; height:28px; border-radius:999px;
+    background:#d6e3ef; border:1px solid #c9d7e5; cursor:pointer;
+    transition: background .2s ease;
+  }
+  .switch::after {
+    content:""; position:absolute; top:2px; left:2px; width:24px; height:24px; border-radius:50%;
+    background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.15); transition: transform .2s ease;
+  }
+  .switch.active { background:#0b6aa8; border-color:#0b6aa8; }
+  .switch.active::after { transform: translateX(28px); }
+  .toggle-label { color:var(--muted); font-weight:700; }
+
+  .table-wrap {
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; box-shadow:var(--shadow);
+  }
+
+  .admin-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  .admin-table thead th{
+    position:sticky; top:0; z-index:1; background:#f7fafc; color:#475569;
+    text-align:left; font-weight:700; border-bottom:1px solid var(--line);
+    padding:12px 12px;
+  }
+  .admin-table td{ padding:12px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+  .admin-table tbody tr:nth-child(even){ background:#fcfdff; }
+  .admin-table tbody tr:hover td{ background:#f8fbff; transition: background .15s ease; }
+
+  .pill {
+    display:inline-block; padding:3px 8px; border-radius:999px; font-size:.85rem;
+    background:#e6f6ff; color:#0b6aa8; border:1px solid #cfe9fb;
+  }
+
+  .actions a, .actions form button{
+    display:inline-block; margin-right:6px; padding:8px 12px; border-radius:8px; border:0; color:#fff;
+    text-decoration:none; font-weight:700; box-shadow:0 6px 14px rgba(2,8,23,.12);
+    transition: transform .05s ease, filter .15s ease, box-shadow .15s ease;
+  }
+  .actions a:hover, .actions form button:hover { filter:brightness(.96); box-shadow:0 10px 20px rgba(2,8,23,.18); }
+  .actions a:active, .actions form button:active { transform: translateY(1px); }
+
+  .btn-view{ background:var(--blue); }
+  .btn-edit{ background:var(--green); }
+  .btn-del{ background:var(--red); }
+
+  .actions form{ display:inline; }
+
+  .grid{
+    display:grid; gap:16px; grid-template-columns:1fr; margin-top:10px;
+  }
+  @media (min-width:900px){ .grid{ grid-template-columns:repeat(3,1fr); } }
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    box-shadow:var(--shadow); transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover{ transform:translateY(-3px); box-shadow:0 16px 30px rgba(16,24,40,.12); }
+  .cover{ display:block; width:100%; height:170px; object-fit:cover; background:#eef2f7; }
+  .pad{ padding:12px 14px; }
+  .price{ font-weight:800; }
+  .meta{ color:#55627a; font-size:.95rem; margin-top:4px; }
+  .view-link{
+    display:inline-block; margin-top:8px; padding:8px 10px; background:var(--blue); color:#fff; border-radius:8px; text-decoration:none;
+    transition: filter .15s ease;
+  }
+  .view-link:hover{ filter:brightness(.95); }
+
+  .empty { padding:18px; color:var(--muted); }
+</style>
+
+<div class="topbar">
+  <h1>Manage Properties</h1>
+
+  <div class="view-toggle">
+    <span class="toggle-label">Admin</span>
+    <div id="viewSwitch" class="switch" role="button" aria-label="Toggle view"></div>
+    <span class="toggle-label">Customer</span>
+  </div>
+</div>
+
+<div id="adminView" class="table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>City</th>
+        <th>Price</th>
+        <th>Beds</th>
+        <th>Baths</th>
+        <th>Featured</th>
+        <th style="width:280px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in properties %}
+      <tr>
+        <td>{{ p.title }}</td>
+        <td>{{ p.city }}</td>
+        <td>${{ p.price }}</td>
+        <td>{{ p.bedrooms }}</td>
+        <td>{{ p.bathrooms }}</td>
+        <td>{% if p.is_featured %}<span class="pill">Featured</span>{% else %}—{% endif %}</td>
+        <td class="actions">
+          <a class="btn-view" href="{{ p.get_absolute_url }}" target="_blank">View</a>
+          <a class="btn-edit" href="{% url 'properties:staff_edit' p.pk %}">Edit</a>
+          <form method="post" action="{% url 'properties:staff_delete' p.pk %}">
+            {% csrf_token %}
+            <button class="btn-del" onclick="return confirm('Delete this property?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td class="empty" colspan="7">No properties yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div id="customerView" style="display:none">
+  <div class="grid">
+    {% for p in properties %}
+    <article class="card">
+      {% if p.cover %}
+        <img class="cover" src="{{ p.cover.url }}" alt="{{ p.title }}">
+      {% else %}
+        <div class="cover"></div>
+      {% endif %}
+      <div class="pad">
+        <h3 style="margin:0 0 4px">{{ p.title }}</h3>
+        <div class="price">${{ p.price }}</div>
+        <div class="meta">{{ p.city }} · {{ p.bedrooms }} bd · {{ p.bathrooms }} ba · {{ p.size_sqm }} m²</div>
+        <a class="view-link" href="{{ p.get_absolute_url }}" target="_blank">View details</a>
+      </div>
+    </article>
+    {% empty %}
+    <div class="table-wrap empty">No properties to show.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  (function(){
+    const key = "staff_manage_view";
+    const admin = document.getElementById("adminView");
+    const customer = document.getElementById("customerView");
+    const sw = document.getElementById("viewSwitch");
+
+    function setView(mode){
+      if(mode === "customer"){
+        admin.style.display = "none";
+        customer.style.display = "block";
+        sw.classList.add("active");
+        localStorage.setItem(key, "customer");
+      }else{
+        admin.style.display = "block";
+        customer.style.display = "none";
+        sw.classList.remove("active");
+        localStorage.setItem(key, "admin");
+      }
+    }
+
+    setView(localStorage.getItem(key) || "admin");
+
+    sw.addEventListener("click", () => {
+      const next = sw.classList.contains("active") ? "admin" : "customer";
+      setView(next);
+    });
+  })();
+</script>
+
+{% endblock %}

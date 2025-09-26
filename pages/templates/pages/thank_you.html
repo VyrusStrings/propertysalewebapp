@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Thank you" %}{% endblock %}
+{% block content %}
+<style>
+  .thanks{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:24px;
+    max-width:680px;
+    margin:0 auto;
+    text-align:center;
+  }
+  .thanks h1{ margin:0 0 8px; }
+  .thanks p{ color:var(--muted); margin:0 0 16px; }
+  .actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+</style>
+
+<div class="thanks">
+  <h1>{% trans "Thank you!" %}</h1>
+  <p>{% trans "We received your request. Our advisor will contact you shortly via the details you provided." %}</p>
+  <div class="actions">
+    <a class="btn btn-primary" href="{% url 'properties:list' %}">{% trans "Browse projects" %}</a>
+    <a class="btn btn-white" href="{% url 'pages:home' %}">{% trans "Back to home" %}</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Services" %}{% endblock %}
+{% block content %}
+<style>
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(2,1fr)}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
+  .card h3{margin:.2rem 0 .4rem}
+  .meta{color:var(--muted)}
+  .cta{margin-top:18px}
+</style>
+
+<h1 style="margin:0 0 12px">{% trans "Our Services" %}</h1>
+<p class="meta">{% trans "From selection to post-sale management — all in one place." %}</p>
+
+<div class="grid" style="margin-top:16px">
+  <div class="card">
+    <h3>{% trans "Buying support" %}</h3>
+    <p class="meta">{% trans "Shortlist, viewing (online/offline), negotiation, developer contract, title transfer." %}</p>
+  </div>
+  <div class="card">
+    <h3>{% trans "Inspection tour" %}</h3>
+    <p class="meta">{% trans "We arrange accommodation, transfers and visit matching projects together." %}</p>
+  </div>
+  <div class="card">
+    <h3>{% trans "Rental & management" %}</h3>
+    <p class="meta">{% trans "Handover, furnishing, tenant search, yield reporting, ongoing service." %}</p>
+  </div>
+  <div class="card">
+    <h3>{% trans "Residence permit help" %}</h3>
+    <p class="meta">{% trans "We guide documents and appointments to obtain residency." %}</p>
+  </div>
+</div>
+
+<div class="card cta">
+  <h3>{% trans "Get a free consultation" %}</h3>
+  <p class="meta">{% trans "Tell us your budget and goals — we’ll propose 3–5 matching options." %}</p>
+  <a class="btn btn-primary" href="{% url 'leads:contact' %}">{% trans "Request Info" %}</a>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+# Django collected static & user uploads
+staticfiles/
+collectstatic/
+media/
+
+# Virtual envs
+VE_Pptsale/
+venv/
+.venv/
+
+# Misc
+__pycache__/
+*.py[cod]
+*.log
+propertysaletrnc-bbeda711b34.json
+*.env
+
+# Secrets
+*.json
+*.key.json
+*service*account*.json
+*.secrets.json

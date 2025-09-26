@@ -1,0 +1,59 @@
+{% extends "staff_base.html" %}
+{% block title %}Manage Properties{% endblock %}
+{% block content %}
+
+<style>
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+.admin-table th, .admin-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+.admin-table th {
+  background: #f5f7fa;
+}
+.action-btn {
+  padding: 6px 12px;
+  background: #0b6aa8;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.action-btn.delete {
+  background: #c0392b;
+}
+</style>
+
+<h1>Manage Properties</h1>
+
+<table class="admin-table">
+  <tr>
+    <th>Title</th>
+    <th>City</th>
+    <th>Price</th>
+    <th>Beds</th>
+    <th>Baths</th>
+    <th>Actions</th>
+  </tr>
+  {% for p in properties %}
+  <tr>
+    <td>{{ p.title }}</td>
+    <td>{{ p.city }}</td>
+    <td>${{ p.price }}</td>
+    <td>{{ p.bedrooms }}</td>
+    <td>{{ p.bathrooms }}</td>
+    <td>
+      <a href="{{ p.get_absolute_url }}" class="action-btn">View</a>
+      <a href="{% url 'delete_property' p.id %}" class="action-btn delete">Delete</a>
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="6">No properties yet.</td></tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

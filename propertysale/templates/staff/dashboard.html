@@ -1,0 +1,399 @@
+{% extends "staff_base.html" %}
+{% block title %}Dashboard — North Cyprus Properties{% endblock %}
+{% block content %}
+
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --line: #e6e9f0;
+    --muted: #5b6b83;
+    --accent: #0b6aa8;
+    --accent-2: #095782;
+    --ring: rgba(11, 106, 168, .18);
+    --radius: 14px;
+  }
+
+  .page-title { margin: 0 0 8px; font-size: 1.8rem; letter-spacing: .2px; }
+  .subtle { margin: 0 0 16px; color: var(--muted); }
+
+  /* KPI cards */
+  .cards { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (min-width:960px) { .cards { grid-template-columns: repeat(4, 1fr); } }
+
+  .card{
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px;
+    box-shadow: 0 4px 12px rgba(16, 24, 40, .05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card:hover{ transform: translateY(-4px); box-shadow: 0 10px 24px rgba(16, 24, 40, .12); }
+
+  .kpi-wrap{ display: flex; align-items: center; gap: 12px; }
+  .kpi-icon{
+    width: 42px; height: 42px; border-radius: 999px; display: grid; place-items: center;
+    background: linear-gradient(180deg, #e8f3fb 0%, #dbeefb 100%); border: 1px solid #cfe4f6;
+  }
+  .kpi-name{ color: var(--muted); font-size: .95rem; margin: 0; }
+  .kpi{ font-size: 2rem; font-weight: 800; margin: 2px 0 0; }
+
+  /* Panels / charts / table */
+  .grid-2 { display: grid; gap: 16px; }
+  @media (min-width:1100px) { .grid-2 { grid-template-columns: 2fr 1fr; } }
+
+  .panel, .chart-wrap{
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px;
+    box-shadow: 0 6px 18px rgba(16, 24, 40, .06);
+  }
+  .panel h3, .chart-wrap h3 { margin: 0 0 10px; }
+
+  /* Responsive line/bar charts */
+  .chart-wrap{ position:relative; }
+  .chart-wrap canvas{ width:100% !important; height:280px !important; }
+  @media (max-width: 900px){
+    .chart-wrap canvas{ height:220px !important; }
+  }
+
+  /* Table – lighter typography, more breathing room */
+  .table { width: 100%; border-collapse: collapse; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+  .table th, .table td { border-bottom: 1px solid #eef2f7; padding: 12px; text-align: left; vertical-align: top; }
+  .table th { font-weight: 600; letter-spacing: .02em; font-size: .92rem; color:#0f172a; }
+  .table td { font-weight: 400; font-size: .95rem; line-height: 1.35; color:#0f172a; }
+  .table tr:hover td { background: #fafbff; }
+
+  /* Nicer “carded” table rows */
+  .tbl-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:10px;}
+  .tbl-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .input-lite,.select-lite{
+    height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .input-lite:focus,.select-lite:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring);}
+  .input-lite{min-width:260px}
+  .tbl-wrap{overflow:auto;border-radius:12px;}
+  .table.nice{width:100%;border-collapse:separate;border-spacing:0 8px;}
+  .table.nice thead th{
+    position:sticky;top:0;background:#f7f9fc;border:1px solid var(--line);border-bottom:none;
+    padding:12px;font-weight:700;z-index:1; cursor:pointer; user-select:none; position:relative;
+  }
+  .table.nice tbody td{
+    background:#fff;border:1px solid var(--line);padding:12px;vertical-align:top;
+  }
+  .table.nice tbody tr td:first-child,
+  .table.nice thead th:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px;}
+  .table.nice tbody tr td:last-child,
+  .table.nice thead th:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px;}
+  .table.nice tbody tr:hover td{background:#fcfdff}
+  .sort-arrow{ position:absolute; right:8px; top:50%; transform:translateY(-50%); opacity:.45; transition:opacity .15s ease; }
+  .table th.active .sort-arrow{ opacity:1; }
+
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;}
+  .muted{color:var(--muted)}
+  .strong{font-weight:700}
+  .clamp-1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* Pills */
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#eef2f7;color:#334155;font-size:.85rem;font-weight:700;border:1px solid #e4e9f2}
+  .pill--new{background:#eef6ff;border-color:#d7eaff;color:#0b6aa8}
+  .pill--contacted{background:#fff9e6;border-color:#ffe9a8;color:#9a6b00}
+  .pill--remote{background:#eafcf2;border-color:#cceedd;color:#1a7f4b}
+
+  /* country flag (django-countries flags.css is already included in base) */
+  .country{display:flex;align-items:center;gap:8px}
+  .flag{display:inline-block;width:18px;height:12px;border:1px solid #dbe0e8;border-radius:3px;background-size:cover}
+
+  /* Responsive line/bar (a tad taller too) */
+  .chart-wrap canvas{ width:100% !important; height:320px !important; }
+  @media (max-width: 900px){
+    .chart-wrap canvas{ height:250px !important; }
+  }
+
+  /* Fixed-size donut card with two BIG square charts */
+  .donut-card .donut-grid{
+    display:flex; gap:28px; align-items:center; justify-content:space-around; flex-wrap:wrap;
+  }
+  .donut-card canvas{
+    width:340px !important; height:340px !important;   /* was 240 → now 340 */
+  }
+  @media (max-width: 1200px){
+    .donut-card canvas{ width:300px !important; height:300px !important; }
+  }
+  @media (max-width: 900px){
+    .donut-card canvas{ width:260px !important; height:260px !important; }
+  }
+</style>
+
+<h1 class="page-title">Welcome, {{ user.username }}</h1>
+<p class="subtle">Dashboard</p>
+
+<div class="cards">
+  <div class="card"><div class="kpi-wrap"><div class="kpi-icon">📈</div><div><div class="kpi-name">Total Leads</div><div class="kpi">{{ kpis.total_leads }}</div></div></div></div>
+  <div class="card"><div class="kpi-wrap"><div class="kpi-icon">📅</div><div><div class="kpi-name">Leads (This Week)</div><div class="kpi">{{ kpis.leads_this_week }}</div></div></div></div>
+  <div class="card"><div class="kpi-wrap"><div class="kpi-icon">🗓️</div><div><div class="kpi-name">Leads (This Month)</div><div class="kpi">{{ kpis.leads_this_month }}</div></div></div></div>
+  <div class="card"><div class="kpi-wrap"><div class="kpi-icon">🏠</div><div><div class="kpi-name">Total Properties</div><div class="kpi">{{ kpis.total_properties }}</div></div></div></div>
+</div>
+
+<div class="grid-2 section">
+  <div class="chart-wrap">
+    <h3>Leads — Last 14 Days</h3>
+    <canvas id="chartByDay"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <h3>Top Countries</h3>
+    <canvas id="chartCountries"></canvas>
+  </div>
+</div>
+
+<div class="grid-2 section">
+  <div class="panel">
+    <div class="tbl-head">
+      <h3>Recent Leads</h3>
+      <div class="tbl-tools">
+        <input id="leadSearch" class="input-lite" type="search" placeholder="Search name / phone / email..." />
+        <select id="statusFilter" class="select-lite" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          <option value="new">new</option>
+          <option value="contacted">contacted</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="table nice" id="leadsTable">
+        <thead>
+          <tr>
+            <th data-sort="date">Date <span class="sort-arrow">↕</span></th>
+            <th data-sort="name">Name <span class="sort-arrow">↕</span></th>
+            <th data-sort="contact">Contact <span class="sort-arrow">↕</span></th>
+            <th data-sort="country">Country <span class="sort-arrow">↕</span></th>
+            <th data-sort="budget">Budget <span class="sort-arrow">↕</span></th>
+            <th data-sort="remote">Remote <span class="sort-arrow">↕</span></th>
+            <th data-sort="arrival">Arrival <span class="sort-arrow">↕</span></th>
+            <th data-sort="status">Status <span class="sort-arrow">↕</span></th>
+            <th data-sort="property">Property <span class="sort-arrow">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="leadsBody">
+          {% load countries %}
+          {% for l in recent_leads %}
+          {% get_country l.country as C %}
+          <tr
+            data-date="{{ l.created_at|date:'Y-m-d H:i:s' }}"
+            data-name="{{ l.full_name|default:''|lower }}"
+            data-contact="{{ l.phone|default:'' }} {{ l.email|default:'' }}"
+            data-country="{{ C.code|default:l.country|default:''|lower }}"
+            data-budget="{{ l.budget_min|default:'0' }}"
+            data-status="{{ l.status|default:''|lower }}"
+            data-remote="{{ l.remote_purchase|yesno:'1,0' }}"
+            data-arrival="{{ l.visit_date|date:'Y-m-d' }}"
+            data-property="{% if l.property %}{{ l.property.title|lower }}{% else %}{% endif %}"
+          >
+            <td class="mono">{{ l.created_at|date:"Y-m-d H:i" }}</td>
+
+            <td>
+              <div class="strong">{{ l.full_name|default:"—" }}</div>
+              {% if l.message %}<div class="muted clamp-1">{{ l.message }}</div>{% endif %}
+            </td>
+
+            <td>
+              {% if l.phone %}<div class="mono">{{ l.phone }}</div>{% endif %}
+              {% if l.email %}<div class="muted">{{ l.email }}</div>{% endif %}
+            </td>
+
+            <td>
+              <div class="country">
+                <span class="flag flag-{{ C.code|default:l.country|lower }}"></span>
+                <span>{{ C.name|default:l.country|default:"—" }}</span>
+              </div>
+            </td>
+
+            <td class="mono">£{{ l.budget_min|default:"0" }} – £{{ l.budget_max|default:"0" }}</td>
+
+            <!-- Remote column -->
+            <td>
+              {% if l.remote_purchase %}
+                <span class="pill pill--remote">Yes</span>
+              {% else %}
+                <span class="pill">No</span>
+              {% endif %}
+            </td>
+
+            <!-- Arrival column: visit date (if any) -->
+            <td>
+              {% if l.visit_date %}
+                <span class="pill">{{ l.visit_date|date:"Y-m-d" }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+
+            <!-- Status -->
+            <td>
+              {% with s=l.status|default:''|lower %}
+                <span class="pill {% if s %}pill--{{ s }}{% endif %}">{{ l.status|default:"—" }}</span>
+              {% endwith %}
+            </td>
+
+            <td>
+              {% if l.property %}
+                <a class="link" href="{{ l.property.get_absolute_url }}" target="_blank">{{ l.property.title }}</a>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9">No leads yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Fixed-size card with two donuts (status + countries) -->
+  <div class="chart-wrap donut-card">
+    <h3>Leads by Status & Countries</h3>
+    <div class="donut-grid">
+      <canvas id="chartStatus"></canvas>
+      <canvas id="chartCountryRing"></canvas>
+    </div>
+  </div>
+</div>
+
+{{ chart.by_day|json_script:"chart-by-day" }}
+{{ chart.countries|json_script:"chart-countries" }}
+{{ chart.timeline|json_script:"chart-timeline" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // ------- Parse data once -------
+  const byDay     = JSON.parse(document.getElementById('chart-by-day').textContent);
+  const countries = JSON.parse(document.getElementById('chart-countries').textContent);
+  const timeline  = JSON.parse(document.getElementById('chart-timeline').textContent);
+
+  // ------- Global chart typography -------
+  Chart.defaults.color = '#0f172a';
+  Chart.defaults.font.family = 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial';
+  Chart.defaults.font.size = 14;
+
+  // Helper: safely create a chart only if the canvas exists
+  function mk(ctx, cfg){ if(!ctx) return null; return new Chart(ctx, cfg); }
+
+  // ------- Line (last 14 days) -------
+  const lineCtx = document.getElementById('chartByDay')?.getContext('2d');
+  const lineChart = mk(lineCtx, {
+    type: 'line',
+    data: { labels: byDay.labels, datasets: [{ label: 'Leads', data: byDay.data, tension: .3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { bodyFont:{size:13}, titleFont:{size:13} } },
+      scales: {
+        x: { ticks: { font: { size: 12 } } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 12 } } }
+      },
+      interaction: { mode: 'index', intersect: false }
+    }
+  });
+
+  // ------- Bar (top countries) -------
+  const barCtx = document.getElementById('chartCountries')?.getContext('2d');
+  const barChart = mk(barCtx, {
+    type: 'bar',
+    data: { labels: countries.labels, datasets: [{ label: 'Leads', data: countries.data }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { bodyFont:{size:13}, titleFont:{size:13} } },
+      scales: {
+        x: { ticks: { font: { size: 12 } } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 12 } } }
+      }
+    }
+  });
+
+  // ------- Donuts (status + countries) -------
+  const donutOptions = {
+    responsive: true,
+    maintainAspectRatio: true,   // keeps them round
+    cutout: '56%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 13 }, boxWidth: 18, padding: 14 } },
+      tooltip: { bodyFont:{size:13}, titleFont:{size:13} }
+    }
+  };
+
+  const statusCtx   = document.getElementById('chartStatus')?.getContext('2d');
+  const countryCtx  = document.getElementById('chartCountryRing')?.getContext('2d');
+
+  const statusChart = mk(statusCtx, {
+    type: 'doughnut',
+    data: { labels: timeline.labels, datasets: [{ data: timeline.data }] },
+    options: donutOptions
+  });
+
+  const countriesDonut = mk(countryCtx, {
+    type: 'doughnut',
+    data: { labels: countries.labels, datasets: [{ data: countries.data }] },
+    options: donutOptions
+  });
+
+  // ------- Resize line & bar when their panels change size -------
+  [lineCtx?.canvas, barCtx?.canvas].filter(Boolean).forEach(cv => {
+    const ro = new ResizeObserver(() => {
+      const chart = cv === lineCtx.canvas ? lineChart : barChart;
+      chart?.resize();
+    });
+    ro.observe(cv.parentElement);
+  });
+
+  // ------- Table: sorting + filtering (unchanged logic) -------
+  (function(){
+    const table = document.getElementById('leadsTable');
+    const tbody = document.getElementById('leadsBody');
+    if(!table || !tbody) return;
+
+    const headers = table.querySelectorAll('th[data-sort]');
+    const state = {};
+
+    function sortBy(key, dir){
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const cmp = (a,b)=>{
+        if (key === 'date')    { const va = new Date(a.dataset.date||0).getTime()||0; const vb = new Date(b.dataset.date||0).getTime()||0; return dir==='asc'?va-vb:vb-va; }
+        if (key === 'budget')  { const va = parseFloat(a.dataset.budget||'0'); const vb = parseFloat(b.dataset.budget||'0'); return dir==='asc'?va-vb:vb-va; }
+        if (key === 'remote')  { const va = a.dataset.remote==='1'?1:0; const vb = b.dataset.remote==='1'?1:0; return dir==='asc'?va-vb:vb-va; }
+        if (key === 'arrival') { const va = new Date(a.dataset.arrival||0).getTime()||0; const vb = new Date(b.dataset.arrival||0).getTime()||0; return dir==='asc'?va-vb:vb-va; }
+        const va = (a.dataset[key]||'').toString(); const vb = (b.dataset[key]||'').toString();
+        if (va<vb) return dir==='asc'? -1:1; if (va>vb) return dir==='asc'? 1:-1; return 0;
+      };
+      rows.sort(cmp).forEach(r=>tbody.appendChild(r));
+    }
+
+    headers.forEach(th=>{
+      th.addEventListener('click', ()=>{
+        const key = th.dataset.sort;
+        const dir = state[key]==='asc' ? 'desc' : 'asc';
+        Object.keys(state).forEach(k=>delete state[k]); state[key]=dir;
+        headers.forEach(h=>{ h.classList.remove('active'); const a=h.querySelector('.sort-arrow'); if(a) a.textContent='↕'; });
+        th.classList.add('active'); th.querySelector('.sort-arrow').textContent = dir==='asc'?'↑':'↓';
+        sortBy(key, dir);
+      });
+    });
+
+    const dateTh = table.querySelector('th[data-sort="date"]');
+    if (dateTh){ dateTh.classList.add('active'); state.date='desc'; dateTh.querySelector('.sort-arrow').textContent='↓'; sortBy('date','desc'); }
+
+    const q = document.getElementById('leadSearch');
+    const f = document.getElementById('statusFilter');
+    function applyFilter(){
+      const term = (q?.value||'').trim().toLowerCase();
+      const status = (f?.value||'').toLowerCase();
+      tbody.querySelectorAll('tr').forEach(tr=>{
+        const hay = (tr.dataset.name+' '+tr.dataset.contact+' '+tr.dataset.country+' '+tr.dataset.property).toLowerCase();
+        const okTerm = !term || hay.includes(term);
+        const okStatus = !status || (tr.dataset.status === status);
+        tr.style.display = (okTerm && okStatus) ? '' : 'none';
+      });
+    }
+    q?.addEventListener('input', applyFilter);
+    f?.addEventListener('change', applyFilter);
+  })();
+</script>
+
+
+{% endblock %}

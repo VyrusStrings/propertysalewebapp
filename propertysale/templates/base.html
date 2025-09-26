@@ -1,0 +1,309 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
+<head>
+  {% block extra_css %}{% endblock %}
+  <script>document.documentElement.classList.add('js');</script>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'django_countries/flags.css' %}">
+  <link rel="stylesheet" href="{% static '/css/animation.css' %}?v=2">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}{% trans "North Cyprus Properties" %}{% endblock %}</title>
+
+<style>
+  :root{--bg:#f6f8fb;--card:#fff;--ink:#0f172a;--muted:#526070;--line:#e6e9f0;--brand:#0b6aa8;--brand-2:#095782;--accent:#38bdf8;--radius:14px;--shadow:0 10px 26px rgba(16,24,40,.08);}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";line-height:1.45;display:flex;flex-direction:column;min-height:100vh;}
+  .container{max-width:1180px;margin:0 auto;padding:0 16px;}
+  header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#0c7aba 0%,#0b6aa8 100%);color:#fff;box-shadow:0 4px 14px rgba(2,8,23,.12);}
+  .nav{display:flex;align-items:center;gap:14px;padding:14px 0;}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:900;letter-spacing:.2px;flex:0 0 auto;}
+  .brand-mark{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-weight:800;background:#fff;color:var(--brand);box-shadow:0 3px 10px rgba(0,0,0,.12);}
+
+  /* NAV ROW — keep everything on one line */
+  .nav-links{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:nowrap;
+    white-space:nowrap;
+  }
+  .nav-links > *{ flex:0 0 auto; }  /* do not shrink items */
+
+  .link{
+    display:inline-flex;
+    align-items:center;
+    color:#e6f3fb;text-decoration:none;
+    padding:8px 10px;border-radius:10px;
+    transition:background .18s ease,color .18s ease;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .link:hover{background:rgba(255,255,255,.12);color:#fff;}
+
+  /* Buttons — unified */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 16px;border-radius:10px;border:0;cursor:pointer;text-decoration:none;
+    font-weight:800;transition:filter .15s ease,box-shadow .15s ease,transform .05s ease;
+    box-shadow:0 6px 14px rgba(2,8,23,.12);
+    white-space:nowrap;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:linear-gradient(180deg,var(--brand) 0%,var(--brand-2) 100%);color:#fff;border:1px solid rgba(255,255,255,.18)}
+  .btn-primary:hover{filter:brightness(1.03);box-shadow:0 10px 20px rgba(2,8,23,.18)}
+  .btn-white{background:#fff;color:var(--brand);border:1px solid #e6e9f0}
+  .btn-white:hover{filter:brightness(.98);box-shadow:0 10px 20px rgba(2,8,23,.18)}
+  .btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6)}
+  .btn-outline:hover{background:rgba(255,255,255,.12)}
+  .btn-block{width:100%}
+  .btn-sm{padding:8px 12px;border-radius:10px;font-weight:700}
+
+  /* Fallback for bare submits */
+  form button[type="submit"]:not([class]),
+  form input[type="submit"]:not([class]){
+    display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:10px;border:0;font-weight:800;cursor:pointer;
+    background:linear-gradient(180deg,var(--brand) 0%,var(--brand-2) 100%);color:#fff;box-shadow:0 6px 14px rgba(2,8,23,.12);
+    white-space:nowrap;
+  }
+
+  .hamburger{display:none;margin-left:auto;background:transparent;border:0;color:#fff;font-size:1.4rem;}
+
+  /* Collapse to mobile menu earlier if needed */
+  @media (max-width:1100px){
+    .nav{padding:12px 0;}
+    .nav-links{
+      display:none;
+      position:absolute;left:0;right:0;top:60px;
+      flex-direction:column;align-items:stretch;gap:8px;
+      background:linear-gradient(180deg,#0c7aba,#0b6aa8);
+      padding:12px 16px 16px;box-shadow:0 10px 22px rgba(2,8,23,.22);
+      white-space:normal;      /* allow wrapping inside the mobile drawer */
+    }
+    .nav-links.show{display:flex;}
+    .hamburger{display:block;}
+  }
+
+  main{flex:1 0 auto;padding:28px 0;}
+  .page{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;}
+  footer{background:#0e2738;color:#dbeafe;padding:22px 0;margin-top:32px;}
+  .footer-grid{display:grid;gap:14px;grid-template-columns:1fr;align-items:start;}
+  .footer-col h4{margin:0 0 8px;color:#fff;}
+  .foot-link{color:#dbeafe;text-decoration:none;}
+  .foot-link:hover{text-decoration:underline;}
+  .fine{color:#a8c3d9;font-size:.95rem;margin-top:8px;}
+  .hide{display:none!important;}
+
+  /* Language select */
+  .lang-select{
+    padding:8px 10px;border:1px solid rgba(255,255,255,.6);border-radius:10px;
+    background:rgba(255,255,255,.95);color:#0f172a;font-size:14px;
+    box-shadow:0 6px 14px rgba(2,8,23,.12);
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+  .lang-select:focus{outline:none;box-shadow:0 0 0 2px rgba(255,255,255,.6);}
+
+    /* Language dropdown (modern pill) */
+  .lang { position: relative; display: inline-block; }
+
+  .lang-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.6);
+    background:rgba(255,255,255,.95); color:#0f172a; font-weight:700;
+    box-shadow:0 6px 14px rgba(2,8,23,.12); cursor:pointer;
+    transition: box-shadow .2s ease, transform .05s ease, border-color .2s ease;
+  }
+  .lang-btn:hover{ box-shadow:0 10px 22px rgba(2,8,23,.18); }
+  .lang-btn:active{ transform:translateY(1px); }
+  .lang-btn:focus-visible{ outline:none; box-shadow:0 0 0 3px rgba(11,106,168,.25); }
+
+  .lang-caret{ opacity:.7; transition: transform .18s ease; }
+  .lang[aria-expanded="true"] .lang-caret,
+  .lang .lang-btn[aria-expanded="true"] .lang-caret { transform: rotate(180deg); }
+
+  .lang-menu{
+    position:absolute; inset-inline-start:0; top:calc(100% + 8px); z-index:60;
+    min-width: 160px; max-height: 260px; overflow:auto;
+    background:#fff; border:1px solid #e6e9f0; border-radius:12px;
+    box-shadow:0 14px 32px rgba(16,24,40,.18);
+    padding:6px; margin:0; list-style:none;
+    opacity:0; transform: translateY(-6px);
+    pointer-events:none; transition: opacity .18s ease, transform .18s ease;
+  }
+  [dir="rtl"] .lang-menu{ inset-inline-start:auto; inset-inline-end:0; }
+
+  .lang[aria-expanded="true"] .lang-menu,
+  .lang .lang-btn[aria-expanded="true"] + .lang-menu{
+    opacity:1; transform: translateY(0); pointer-events:auto;
+  }
+
+  .lang-item{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 10px; border-radius:10px; cursor:pointer; user-select:none;
+    color:#0f172a; white-space:nowrap;
+  }
+  .lang-item:hover{ background:#f6f8fb; }
+  .lang-item[aria-selected="true"]{ background:#eef6ff; font-weight:800; }
+  .lang-check{ color:#0b6aa8; font-size:12px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .lang-menu{ transition:none; }
+    .lang-caret{ transition:none; }
+  }
+
+</style>
+
+</head>
+
+<body class="page-enter">
+  <header>
+    <div class="container nav">
+      <a class="brand" href="{% url 'pages:home' %}">
+        <span class="brand-mark">NC</span><span>{% trans "North Cyprus Properties" %}</span>
+      </a>
+
+      <button id="navToggle" class="hamburger" aria-label="{% trans 'Menu' %}">☰</button>
+
+      <div id="navLinks" class="nav-links" data-stagger>
+        <a class="link" href="{% url 'pages:home' %}">{% trans "Home" %}</a>
+        <a class="link" href="{% url 'properties:list' %}">{% trans "Catalog" %}</a>
+        <a class="link" href="{% url 'pages:services' %}">{% trans "Services" %}</a>
+        <a class="link" href="{% url 'pages:tour' %}">{% trans "Free Tour" %}</a>
+        <a class="link" href="{% url 'pages:contacts' %}">{% trans "Contacts" %}</a>
+        <a class="btn btn-white" href="{% url 'leads:contact' %}">{% trans "Request Info" %}</a>
+
+        {% if user.is_authenticated %}
+          <a class="btn btn-outline" href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a>
+          <form action="{% url 'staff_logout' %}" method="post" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-outline">{% trans "Logout" %}</button></form>
+        {% else %}
+          <a href="{% url 'staff_login' %}" class="btn btn-outline">{% trans "Admin Login" %}</a>
+        {% endif %}
+
+        <form action="{% url 'set_language' %}" method="post" class="lang-form" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          {% get_available_languages as AVAILABLE_LANGS %}
+          {% get_language_info_list for AVAILABLE_LANGS as langs %}
+
+          <div class="lang" data-lang>
+            <button type="button" class="lang-btn" aria-haspopup="listbox" aria-expanded="false">
+              <span class="lang-label">
+                {% for lang in langs %}
+                  {% if lang.code == LANGUAGE_CODE %}{{ lang.name_local }}{% endif %}
+                {% endfor %}
+              </span>
+              <svg class="lang-caret" width="14" height="14" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M5 7l5 6 5-6" fill="currentColor"></path>
+              </svg>
+            </button>
+
+            <ul class="lang-menu" role="listbox" tabindex="-1">
+              {% for lang in langs %}
+                <li role="option"
+                    class="lang-item"
+                    data-value="{{ lang.code }}"
+                    aria-selected="{% if lang.code == LANGUAGE_CODE %}true{% else %}false{% endif %}">
+                  {{ lang.name_local }}
+                  {% if lang.code == LANGUAGE_CODE %}<span class="lang-check">•</span>{% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+
+            <input type="hidden" name="language" value="{{ LANGUAGE_CODE }}">
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="page reveal">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <h4>{% trans "North Cyprus Properties" %}</h4>
+        <div class="fine">{% trans "Helping investors and families discover the best homes and opportunities across North Cyprus." %}</div>
+      </div>
+      <div class="footer-col">
+        <a class="foot-link" href="{% url 'properties:list' %}">{% trans "Browse properties" %}</a> ·
+        <a class="foot-link" href="{% url 'leads:contact' %}">{% trans "Request information" %}</a> ·
+        <a class="foot-link" href="{% url 'pages:privacy' %}">{% trans "Privacy" %}</a>
+      </div>
+      <div class="footer-col fine">© 2025 {% trans "North Cyprus Properties" %}</div>
+    </div>
+  </footer>
+
+  <script>
+    (function(){const t=document.getElementById('navToggle');const links=document.getElementById('navLinks');if(!t||!links)return;t.addEventListener('click',()=>links.classList.toggle('show'));})();
+  </script>
+  <script src="{% static '/static/js/reveal.js' %}"></script>
+  <script src="{% static '/js/accordion.js' %}"></script>
+  <script>
+    (function(){
+      const lang = document.querySelector('[data-lang]');
+      if(!lang) return;
+
+      const form   = lang.closest('form');
+      const btn    = lang.querySelector('.lang-btn');
+      const menu   = lang.querySelector('.lang-menu');
+      const hidden = lang.querySelector('input[name="language"]');
+      const label  = lang.querySelector('.lang-label');
+
+      function open(){
+        btn.setAttribute('aria-expanded','true');
+        lang.setAttribute('aria-expanded','true');
+        menu.focus({preventScroll:true});
+      }
+      function close(){
+        btn.setAttribute('aria-expanded','false');
+        lang.setAttribute('aria-expanded','false');
+      }
+
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const isOpen = btn.getAttribute('aria-expanded') === 'true';
+        isOpen ? close() : open();
+      });
+
+      // Click selection
+      menu.addEventListener('click', (e)=>{
+        const item = e.target.closest('.lang-item');
+        if(!item) return;
+        const val = item.getAttribute('data-value');
+        hidden.value = val;
+
+        // update visual selection + label
+        menu.querySelectorAll('.lang-item').forEach(li=>{
+          li.setAttribute('aria-selected', li === item ? 'true' : 'false');
+        });
+        label.textContent = item.textContent.replace('•','').trim();
+
+        // submit the form to set_language
+        form.submit();
+      });
+
+      // Close on outside click / Escape
+      document.addEventListener('click', (e)=>{
+        if(!lang.contains(e.target)) close();
+      });
+      document.addEventListener('keydown', (e)=>{
+        if(e.key === 'Escape') close();
+      });
+    })();
+    </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

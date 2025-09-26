@@ -1,0 +1,362 @@
+{% extends "staff_base.html" %}
+{% block title %}{% if edit %}Edit Property{% else %}Add Property{% endif %}{% endblock %}
+{% block content %}
+
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#fff; --line:#e6e9f0; --muted:#6b7280;
+    --title:#0b6aa8; --accent:#095782; --ring: rgba(11,106,168,.20);
+    --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  body, input, textarea, select, button{
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+  }
+
+  .page{ max-width:980px; margin:0 auto; }
+  .h1{ margin:0 0 16px; font-size:1.65rem; letter-spacing:.2px; font-weight:800; color:#0f172a; }
+
+  .form-card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:0 10px 26px rgba(16,24,40,.08); }
+  .form-head{ padding:14px 18px; background: linear-gradient(180deg, #0c7aba 0%, #0b6aa8 100%); color:#fff; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .form-head h2{ margin:0; font-size:1.05rem; font-weight:700; }
+  .form-body{ padding:20px; }
+
+  .section{ margin:18px 0 8px; font-weight:800; color:var(--title); display:flex; align-items:center; gap:8px; }
+  .section:before{ content:""; width:6px; height:18px; border-radius:4px; background:#89c2f1; display:inline-block; }
+
+  .grid{ display:grid; gap:14px; grid-template-columns:1fr; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-2 > .field{ min-width:0; }
+
+  .label{ display:block; font-weight:700; margin:0 0 6px; color:#55627a; }
+  .help{ color:var(--muted); font-size:.9rem; margin-top:6px; }
+  .err{ background:#fff3f2; color:#b42318; border:1px solid #f1a29c; padding:8px 10px; border-radius:8px; margin:6px 0; }
+
+  input[type="text"], input[type="number"], textarea, select{
+    width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; font-size:1rem;
+    transition: box-shadow .15s ease, border-color .15s ease; background:#fff;
+  }
+  textarea{ min-height:120px; resize:vertical; }
+  input:focus, textarea:focus, select:focus{ outline:none; border-color:#0b6aa8; box-shadow:0 0 0 4px var(--ring); }
+
+  /* Featured toggle */
+  .toggle{
+    --w:52px; --h:28px; --p:3px;
+    position:relative; width:var(--w); height:var(--h); border-radius:999px;
+    background:#e2e8f0; cursor:pointer; flex:0 0 var(--w);
+    transition: background .2s ease, box-shadow .15s ease;
+    display:inline-block;
+  }
+  .toggle input{
+    position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;
+  }
+  .toggle .knob{
+    position:absolute; top:var(--p); left:var(--p);
+    width:calc(var(--h) - var(--p)*2); height:calc(var(--h) - var(--p)*2);
+    border-radius:999px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.12);
+    transition: transform .2s ease;
+  }
+  .toggle:has(input:checked){ background:#22c55e; }           /* ON = green */
+  .toggle:has(input:focus-visible){ box-shadow:0 0 0 4px var(--ring); }
+  .toggle:hover{ box-shadow:0 2px 8px rgba(2,6,23,.08); }
+  .toggle input:checked + .knob{ transform: translateX(calc(var(--w) - var(--h))); }
+
+  .toggle-row{ display:flex; align-items:center; gap:10px; }
+  .toggle-label{ font-weight:700; color:#334155; }
+
+  /* Fancy file input */
+  .file{ position:relative; }
+  .file input[type=file]{ position:absolute; inset:0; opacity:0; width:100%; height:44px; cursor:pointer; }
+  .file .btn-file{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 14px; background:#0b6aa8; color:#fff;
+    border-radius:10px; font-weight:700; border:0; box-shadow:0 8px 18px rgba(11,106,168,.22);
+  }
+  .file .btn-file:hover{ background:#095782; }
+  .file .file-name{ margin-left:10px; color:#475569; font-size:.95rem; }
+
+  /* Cover preview + actions */
+  .cover-wrap{ display:grid; gap:12px; align-items:start; }
+  .cover-preview{ width:100%; max-height:260px; object-fit:cover; border:1px solid var(--line); border-radius:10px; background:#eef2f7; }
+  .cover-actions{ display:flex; gap:10px; align-items:center; margin-top:10px; }
+  .btn{ appearance:none; border:0; cursor:pointer; border-radius:10px; padding:9px 14px; font-weight:700; }
+  .btn-primary{ background:#0b6aa8; color:#fff; box-shadow:0 8px 18px rgba(11,106,168,.22); }
+  .btn-ghost{ background:#fff; color:#0b6aa8; border:1px solid #cfe3f5; }
+  .btn-danger{ background:#c0392b; color:#fff; }
+
+  @media (min-width: 900px){ .cover-wrap{ grid-template-columns: 1fr 1fr; } }
+
+  .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+  .btn-primary:hover{ background:#095782; }
+
+  /* Map */
+  #map{ width:100%; height:320px; border:1px solid var(--line); border-radius:10px; }
+  .map-row{ display:grid; gap:10px; grid-template-columns: 1fr; }
+  @media(min-width:900px){ .map-row{ grid-template-columns: 1fr 1fr; } }
+  .map-search{ display:flex; gap:8px; }
+  .map-search input{ flex:1; }
+
+  /* Gallery grid */
+  .gallery-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
+  @media(min-width:700px){ .gallery-grid{ grid-template-columns: repeat(4, 1fr); } }
+  .thumb{ width:100%; aspect-ratio:1/1; object-fit:cover; border:1px solid var(--line); border-radius:8px; background:#f1f5f9; }
+</style>
+
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<div class="page">
+  <h1 class="h1">{% if edit %}Edit{% else %}Add{% endif %} Property</h1>
+
+  <form id="propForm" method="post" enctype="multipart/form-data" class="form-card">
+    <div class="form-head">
+      <h2>{% if edit %}Update details and save{% else %}Enter property details{% endif %}</h2>
+      {% if edit and prop %}<div style="opacity:.9">ID: {{ prop.id }}</div>{% endif %}
+    </div>
+
+    <div class="form-body">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="err">{{ form.non_field_errors }}</div>{% endif %}
+
+      <div class="section">Basics</div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="label" for="{{ form.title.id_for_label }}">Title</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="err">{{ form.title.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label class="label" for="{{ form.city.id_for_label }}">City</label>
+          {{ form.city }}
+          {% if form.city.errors %}<div class="err">{{ form.city.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label class="label" for="{{ form.price.id_for_label }}">Price</label>
+          {{ form.price }}
+          {% if form.price.errors %}<div class="err">{{ form.price.errors }}</div>{% endif %}
+        </div>
+
+        <div class="toggle-row">
+            <label class="toggle" aria-label="Featured">
+              {{ form.is_featured }}
+              <span class="knob"></span>
+            </label>
+            <span class="toggle-label">Show this property as featured</span>
+          </div>
+
+        <div class="field">
+          <label class="label" for="{{ form.bedrooms.id_for_label }}">Bedrooms</label>
+          {{ form.bedrooms }}
+          {% if form.bedrooms.errors %}<div class="err">{{ form.bedrooms.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label class="label" for="{{ form.bathrooms.id_for_label }}">Bathrooms</label>
+          {{ form.bathrooms }}
+          {% if form.bathrooms.errors %}<div class="err">{{ form.bathrooms.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label class="label" for="{{ form.size_sqm.id_for_label }}">Size (m²)</label>
+          {{ form.size_sqm }}
+          {% if form.size_sqm.errors %}<div class="err">{{ form.size_sqm.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="section">Descriptions</div>
+      <div class="grid">
+        <div class="field">
+          <label class="label" for="{{ form.summary.id_for_label }}">Summary</label>
+          {{ form.summary }}
+          <div class="help">Short teaser shown in cards and list pages.</div>
+          {% if form.summary.errors %}<div class="err">{{ form.summary.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="label" for="{{ form.description.id_for_label }}">Full Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="err">{{ form.description.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="section">Location</div>
+      <!-- Hide raw lat/lng fields but keep them for the backend -->
+      <div style="display:none;">
+        {{ form.lat }}
+        {{ form.lng }}
+      </div>
+
+      <div class="map-row">
+        <div class="field">
+          <label class="label" for="locationText">Location</label>
+          <div class="map-search">
+            <input id="locationText" type="text" placeholder="Search an address or drop the pin on the map" autocomplete="off"/>
+            <button type="button" class="btn btn-ghost" id="btnLocate">Locate</button>
+          </div>
+          <div class="help">Search, or drag the marker. Coordinates are saved automatically.</div>
+          <div id="map" class="mt-2"></div>
+        </div>
+      </div>
+
+      <div class="section">Media</div>
+      <div class="cover-wrap">
+        <div class="field">
+          <label class="label" for="{{ form.cover.id_for_label }}">Cover Image</label>
+
+          <!-- Custom file input (avoids Django's default "Currently/Clear/Change" UI) -->
+          <div class="file">
+            <input id="{{ form.cover.id_for_label }}" name="{{ form.cover.html_name }}" type="file" accept="image/*"/>
+            <button type="button" class="btn btn-file" id="btnChooseCover">Choose cover</button>
+            <span class="file-name" id="coverFileName">{% if edit and prop and prop.cover %}Current: {{ prop.cover.name|default:"existing image" }}{% else %}No file chosen{% endif %}</span>
+          </div>
+          <div class="help">Recommended size: 1200×800 (WebP/JPEG). Larger files will slow the site.</div>
+          {% if form.cover.errors %}<div class="err">{{ form.cover.errors }}</div>{% endif %}
+
+          <div class="cover-actions">
+            {% if edit and prop and prop.cover %}
+              <button type="button" class="btn btn-danger" id="btnRemoveCover">Remove cover</button>
+            {% endif %}
+          </div>
+        </div>
+
+        <div>
+          {% if edit and prop and prop.cover %}
+            <img id="coverPreview" class="cover-preview" src="{{ prop.cover.url }}" alt="Current cover">
+          {% else %}
+            <img id="coverPreview" class="cover-preview" style="display:none;" alt="Cover preview">
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Gallery -->
+      <div class="field" style="margin-top:12px;">
+        <label class="label" for="id_gallery">Gallery</label>
+        <div class="file">
+          <input id="id_gallery" type="file" name="gallery_images" multiple accept="image/*"/>
+          <button type="button" class="btn btn-file" id="btnChooseGallery">Add images</button>
+          <span class="file-name" id="galleryCount">0 images selected</span>
+        </div>
+        <div class="help">Upload multiple images to appear in the property's gallery.</div>
+        <div class="gallery-grid" id="galleryGrid" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">{% if edit %}Save Changes{% else %}Create Property{% endif %}</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  // ===== Featured toggle text update
+  (function(){
+    const featured = document.getElementById('{{ form.is_featured.id_for_label }}');
+    const onoff = document.querySelector('.toggle .onoff');
+    if (featured && onoff) {
+      const setTxt = () => onoff.textContent = featured.checked ? 'On' : 'Off';
+      featured.addEventListener('change', setTxt); setTxt();
+    }
+  })();
+
+  // ===== Fancy file input: Cover
+  (function(){
+    const fileInput = document.getElementById('{{ form.cover.id_for_label }}');
+    const btn = document.getElementById('btnChooseCover');
+    const label = document.getElementById('coverFileName');
+    const preview = document.getElementById('coverPreview');
+    if (!fileInput) return;
+    btn?.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file){ label.textContent = 'No file chosen'; preview.style.display='none'; preview.removeAttribute('src'); return; }
+      label.textContent = file.name;
+      const url = URL.createObjectURL(file); preview.src = url; preview.style.display='block';
+    });
+  })();
+
+  // ===== Remove cover instantly (auto-submit)
+  (function(){
+    const btnRemove = document.getElementById('btnRemoveCover');
+    const form = document.getElementById('propForm');
+    const preview = document.getElementById('coverPreview');
+    if(!btnRemove || !form) return;
+    btnRemove.addEventListener('click', ()=>{
+      if(!confirm('Remove the current cover image now?')) return;
+      // Create/mark the Django clear flag then auto-submit
+      let clear = document.querySelector('input[name="{{ form.cover.name }}-clear"], input[name="cover-clear"]');
+      if(!clear){
+        clear = document.createElement('input');
+        clear.type = 'hidden'; clear.name = '{{ form.cover.name }}-clear'; clear.value = 'on';
+        form.appendChild(clear);
+      } else { clear.value = 'on'; }
+      // Visual clear
+      if (preview){ preview.removeAttribute('src'); preview.style.display='none'; }
+      const fileInput = document.getElementById('{{ form.cover.id_for_label }}');
+      if (fileInput) fileInput.value = '';
+      // Auto-submit so user doesn't have to click Save
+      form.submit();
+    });
+  })();
+
+  // ===== Gallery multi-upload preview
+  (function(){
+    const input = document.getElementById('id_gallery');
+    const btn = document.getElementById('btnChooseGallery');
+    const count = document.getElementById('galleryCount');
+    const grid = document.getElementById('galleryGrid');
+    if(!input) return;
+    btn?.addEventListener('click', ()=> input.click());
+    const render = (files)=>{
+      grid.innerHTML = '';
+      Array.from(files).forEach(f=>{
+        const url = URL.createObjectURL(f);
+        const img = document.createElement('img');
+        img.className='thumb'; img.src=url; grid.appendChild(img);
+      });
+      count.textContent = files.length + (files.length === 1 ? ' image selected' : ' images selected');
+    };
+    input.addEventListener('change', (e)=> render(e.target.files || []));
+  })();
+
+  // ===== Leaflet map with draggable marker
+  (function(){
+    const mapEl = document.getElementById('map');
+    if(!mapEl) return;
+
+    // Pull initial coords from hidden inputs if present
+    const latEl = document.getElementById('{{ form.lat.id_for_label }}');
+    const lngEl = document.getElementById('{{ form.lng.id_for_label }}');
+    const lat0 = parseFloat(latEl?.value || '35.1856'); // default: Cyprus
+    const lng0 = parseFloat(lngEl?.value || '33.3823');
+
+    const map = L.map('map');
+    const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+    const marker = L.marker([lat0, lng0], { draggable:true }).addTo(map);
+    map.setView([lat0, lng0], (latEl?.value && lngEl?.value) ? 13 : 7);
+
+    function setCoords(lat, lng){ if(latEl) latEl.value = lat.toFixed(6); if(lngEl) lngEl.value = lng.toFixed(6); }
+    marker.on('dragend', ()=>{ const p = marker.getLatLng(); setCoords(p.lat, p.lng); });
+    map.on('click', (e)=>{ marker.setLatLng(e.latlng); setCoords(e.latlng.lat, e.latlng.lng); });
+
+    // Simple search via Nominatim
+    const input = document.getElementById('locationText');
+    const locateBtn = document.getElementById('btnLocate');
+    async function geocode(q){
+      if(!q) return;
+      try{
+        const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q));
+        const arr = await res.json();
+        if(arr && arr[0]){
+          const {lat, lon} = arr[0];
+          const latNum = parseFloat(lat), lonNum = parseFloat(lon);
+          marker.setLatLng([latNum, lonNum]); map.setView([latNum, lonNum], 14); setCoords(latNum, lonNum);
+        }
+      }catch(err){ console.warn('Geocode failed', err); }
+    }
+    locateBtn?.addEventListener('click', ()=> geocode(input.value));
+    input?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); geocode(input.value); } });
+  })();
+</script>
+
+{% endblock %}

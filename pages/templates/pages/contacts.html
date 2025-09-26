@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Contacts" %}{% endblock %}
+{% block content %}
+<style>
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
+  .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .item{margin:0 0 8px}
+</style>
+
+<h1 style="margin:0 0 12px">{% trans "Contacts" %}</h1>
+<div class="grid">
+  <div class="panel">
+    <p class="item"><b>{% trans "Phone" %}:</b> <a href="tel:+90XXXXXXXXX">+90 XXX XXX XX XX</a></p>
+    <p class="item"><b>Email:</b> <a href="mailto:info@example.com">info@example.com</a></p>
+    <p class="item"><b>{% trans "Address" %}:</b> {% trans "North Cyprus" %}</p>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <a class="btn btn-primary" href="https://wa.me/90XXXXXXXXX" target="_blank">WhatsApp</a>
+      <a class="btn btn-primary" href="{% url 'leads:contact' %}">{% trans "Request Info" %}</a>
+    </div>
+  </div>
+  <div class="panel">
+    <h3 style="margin:.2rem 0 .6rem">{% trans "Write to us" %}</h3>
+    <p class="meta">{% trans "Prefer a form? Send a quick request and we’ll reply shortly." %}</p>
+    <a class="btn btn-primary" href="{% url 'leads:contact' %}">{% trans "Open the form" %}</a>
+  </div>
+</div>
+{% endblock %}

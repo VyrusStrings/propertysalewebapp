@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Admin — North Cyprus Properties{% endblock %}</title>
+
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --panel:#ffffff;
+      --line:#e6e9f0;
+      --sidebar:#0b3d5c;
+      --sidebar-hover:#134e78;
+      --sidebar-active:#1d6fa5;
+      --accent:#38bdf8;
+      --danger:#c0392b;
+      --danger-2:#a93226;
+      --text:#0f172a;
+      --muted:#dbeafe;
+      --radius:10px;
+    }
+
+    body{
+      margin:0; font-family:Arial, Helvetica, sans-serif;
+      display:flex; min-height:100vh; background:var(--bg); color:var(--text);
+    }
+    .sidebar{
+      width:240px; background:var(--sidebar); color:#fff;
+      display:flex; flex-direction:column; padding:14px 0;
+      position:sticky; top:0; height:100vh;
+    }
+
+    .logo{
+      font-size:1.3rem; font-weight:800; text-align:center; margin:0 0 16px;
+    }
+
+    .menu{ display:flex; flex-direction:column; gap:4px; }
+    .menu-item{
+      display:block; padding:12px 18px; color:var(--muted); text-decoration:none;
+      transition: all .18s ease; font-weight:600; border-left:4px solid transparent;
+    }
+    .menu-item:hover{
+      background:var(--sidebar-hover); color:#fff; padding-left:24px;
+    }
+    .menu-item.active{
+      background:var(--sidebar-active); color:#fff; border-left-color:var(--accent);
+    }
+
+    .logout{
+      margin:16px; padding:10px 12px; width:calc(100% - 32px);
+      background:var(--danger); color:#fff; border:0; border-radius:8px;
+      cursor:pointer; font-weight:700; transition: background .15s ease;
+    }
+    .logout:hover{ background:var(--danger-2); }
+
+    .content{
+      flex:1; padding:24px; background:var(--bg);
+    }
+    footer{
+      margin-top:24px; padding:12px; background:#eee; text-align:center; border-radius:var(--radius);
+      border:1px solid var(--line);
+    }
+
+    .link{ color:#0b6aa8; text-decoration:none; }
+    .link:hover{ text-decoration:underline; }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <h2 class="logo">Admin Panel</h2>
+
+    <nav class="menu">
+      <a href="/dashboard/"
+         class="menu-item {% if request.path == '/dashboard/' %}active{% endif %}">
+        🏠 Dashboard
+      </a>
+
+      <a href="{% url 'properties:staff_add' %}"
+         class="menu-item {% if request.path == '/properties/staff/add/' %}active{% endif %}">
+        ➕ Add Property
+      </a>
+
+      <a href="{% url 'properties:staff_manage' %}"
+         class="menu-item {% if '/properties/staff/manage' in request.path %}active{% endif %}">
+        📂 Manage Properties
+      </a>
+
+      <a href="{% url 'leads:staff_list' %}"
+         class="menu-item {% if '/leads/staff' in request.path %}active{% endif %}">
+        👥 Leads
+      </a>
+
+      <a href="/admin/" target="_blank" class="menu-item">
+        ⚙️ Open Django Admin
+      </a>
+    </nav>
+
+    <form action="{% url 'staff_logout' %}" method="post" style="margin-top:auto">
+      {% csrf_token %}
+      <button type="submit" class="logout">🚪 Logout</button>
+    </form>
+  </aside>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+    <footer>© 2025 North Cyprus Properties</footer>
+  </main>
+
+</body>
+</html>
